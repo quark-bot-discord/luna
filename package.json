@@ -1,0 +1,15 @@
+{
+  "name": "luna",
+  "version": "1.0.0",
+  "description": "Data structure which moves from system memory to system storage after some period of time",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Starman",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "quick.db": "^9.1.7"
+  }
+}
