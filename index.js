@@ -24,7 +24,7 @@ module.exports = class Luna {
                 const cachedAt = this._timestamps.get(key);
 
                 if ((cachedAt.getTime() + this._memoryExpiry) < new Date().getTime()) {
-                    console.log(`${key} moved to storage`);
+
                     this._storage.set(key, value);
 
                     this._cache.delete(key);
