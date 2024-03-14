@@ -1,7 +1,7 @@
 const { QuickDB } = require("quick.db");
 
 module.exports = class Luna {
-    constructor(data, { memoryExpiry = 60 * 3600 * 1000, checkInterval = 30 * 3600 * 1000 }) {
+    constructor(data, { memoryExpiry = 60 * 3600 * 1000, checkInterval = 30 * 3600 * 1000, specialIdentifier = "" }) {
 
         this._cache = new Map(data);
 
@@ -15,6 +15,8 @@ module.exports = class Luna {
 
         this._checkInterval = checkInterval;
 
+        this._specialIdentifier = specialIdentifier;
+
         setInterval((() => {
 
             const cachedData = this._cache.entries();
@@ -25,7 +27,7 @@ module.exports = class Luna {
 
                 if ((cachedAt.getTime() + this._memoryExpiry) < new Date().getTime()) {
 
-                    this._storage.set(key, value);
+                    this._storage.set(`${this._specialIdentifier}_${key}`, value);
 
                     this._cache.delete(key);
 
@@ -66,7 +68,7 @@ module.exports = class Luna {
         if (this._cache.delete(key) == true) {
             this._timestamps.delete(key);
             return true;
-        } else if (await this._storage.delete(key))
+        } else if (await this._storage.delete(`${this._specialIdentifier}_${key}`))
             return true;
         else
             return false;
@@ -85,7 +87,7 @@ module.exports = class Luna {
         const storedEntries = await this._storage.all();
 
         for (let i = 0; i < storedEntries.length; i++)
-            finalEntries.push([storedEntries[i].id, storedEntries[i].value]);
+            finalEntries.push([storedEntries[i].id.replace(`${this._specialIdentifier}_`, ""), storedEntries[i].value]);
 
         return finalEntries;
 
@@ -102,7 +104,7 @@ module.exports = class Luna {
         const allStorage = await this._storage.all();
 
         for (let i = 0; i < allStorage.length; i++)
-            callbackfn(allStorage[i].value, allStorage[i].id);
+            callbackfn(allStorage[i].value, allStorage[i].id.replace(`${this._specialIdentifier}_`, ""));
 
     }
 
@@ -113,7 +115,7 @@ module.exports = class Luna {
         if (getCached)
             return getCached;
 
-        const getStored = await this._storage.get(key);
+        const getStored = await this._storage.get(`${this._specialIdentifier}_${key}`);
 
         if (getStored)
             return getStored;
@@ -130,7 +132,7 @@ module.exports = class Luna {
 
         if (this._cache.has(key) == true)
             return true;
-        else if ((await this._storage.has(key)) == true)
+        else if ((await this._storage.has(`${this._specialIdentifier}_${key}`)) == true)
             return true;
         else
             return false;
@@ -149,7 +151,7 @@ module.exports = class Luna {
         const storedEntries = await this._storage.all();
 
         for (let i = 0; i < storedEntries.length; i++)
-            finalEntries.push(storedEntries[i].id);
+            finalEntries.push(storedEntries[i].id.replace(`${this._specialIdentifier}_`, ""));
 
         return finalEntries;
 
