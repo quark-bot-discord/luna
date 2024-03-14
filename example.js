@@ -15,11 +15,18 @@ setTimeout(async () => {
 }, 4000);
 
 setTimeout(async () => {
-    const keys = await luna.keys();
-    console.log(keys);
-}, 6000);
+    luna.set("another key", 123);
+    console.log("set");
+    luna.forEach((value, key) => {
+        console.log(`${key}: ${value}`);
+    });
+}, 5000);
 
 setTimeout(async () => {
+    await luna.delete("another key");
+    console.log("deleted");
+    const keys = await luna.keys();
+    console.log(keys);
     const hasKey = await luna.has("key");
     console.log(hasKey);
 }, 6000);
