@@ -17,6 +17,8 @@ module.exports = class Luna {
 
         this._specialIdentifier = specialIdentifier;
 
+        this.size = 0;
+
         setInterval((() => {
 
             const cachedData = this._cache.entries();
@@ -41,16 +43,6 @@ module.exports = class Luna {
 
     }
 
-    async size() {
-
-        const cacheSize = this._cache.size;
-        
-        const allStorage = await this._storage.all();
-
-        return allStorage.length + cacheSize;
-
-    }
-
     async clear() {
 
         this._cache.clear();
@@ -58,6 +50,8 @@ module.exports = class Luna {
         this._timestamps.clear();
 
         await this._storage.deleteAll();
+
+        this.size = 0;
 
         return;
 
@@ -67,10 +61,12 @@ module.exports = class Luna {
 
         if (this._cache.delete(key) == true) {
             this._timestamps.delete(key);
+            this.size--;
             return true;
-        } else if (await this._storage.delete(`${this._specialIdentifier}_${key}`))
+        } else if (await this._storage.delete(`${this._specialIdentifier}_${key}`)) {
+            this.size--;
             return true;
-        else
+        } else
             return false;
 
     }
@@ -93,7 +89,7 @@ module.exports = class Luna {
 
     }
 
-    async forEach(callbackfn) {
+    forEach(callbackfn) {
 
         this._cache.forEach((value, key) => {
 
@@ -101,10 +97,13 @@ module.exports = class Luna {
 
         });
 
-        const allStorage = await this._storage.all();
+        this._storage.all()
+            .then(allStorage => {
 
-        for (let i = 0; i < allStorage.length; i++)
-            callbackfn(allStorage[i].value, allStorage[i].id.replace(`${this._specialIdentifier}_`, ""));
+                for (let i = 0; i < allStorage.length; i++)
+                    callbackfn(allStorage[i].value, allStorage[i].id.replace(`${this._specialIdentifier}_`, ""));
+
+            });
 
     }
 
@@ -146,7 +145,7 @@ module.exports = class Luna {
         let finalEntries = [];
 
         for (const cachedEntry of cachedEntries)
-            finalEntries.push(cachedEntry.value[0]);
+            finalEntries.push(cachedEntry[0]);
 
         const storedEntries = await this._storage.all();
 
@@ -163,6 +162,8 @@ module.exports = class Luna {
 
         this._timestamps.set(key, new Date());
 
+        this.size++;
+
     }
 
     async values() {
@@ -172,7 +173,7 @@ module.exports = class Luna {
         let finalEntries = [];
 
         for (const cachedEntry of cachedEntries)
-            finalEntries.push(cachedEntry.value[1]);
+            finalEntries.push(cachedEntry[1]);
 
         const storedEntries = await this._storage.all();
 
